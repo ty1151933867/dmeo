@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v6.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+
+<script>
+
+    // set the dimensions and margins of the graph
+    const margin = {top: 10, right: 30, bottom: 30, left: 60},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    const svg = d3.select("#my_dataviz")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+    //Read the data
+    d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
+    
+      // When reading the csv, I must format variables:
+      function(d){
+        return { date : d3.timeParse("%Y-%m-%d")(d.date), value : d.value }
+      }).then(
+    
+      // Now I can use this dataset:
+      function(data) {
+        const padding = 0
+        // Add X axis --> it is a date format
+        const xScale = d3.scaleTime()
+          .domain(d3.extent(data, function(d) { return d.date; }))
+          .range([ 0, width ]);
+        svg.append("g")
+          .attr("transform", `translate(0, ${height})`)
+          .call(d3.axisBottom(xScale));
+    
+        // Add Y axis
+        const yScale = d3.scaleLinear()
+          .domain([0, d3.max(data, function(d) { return +d.value; })])
+          .range([ height, 0 ]);
+        svg.append("g")
+          .call(d3.axisLeft(yScale));
+    
+        // 绘制折线
+        var line = svg.append('g')
+          .attr('transform', 'translate(0, '+padding+')')
+        line.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "steelblue")
+          .attr("stroke-width", 1.5)
+          .attr("d", d3.line()
+            .x(function(d) { return xScale(d.date) })
+            .y(function(d) { return yScale(d.value) })
+            )
+
+        // 绘制数据坐标圆点
+        line.selectAll('circle').data(data).enter()
+            .append('circle')
+            .attr('cx', function(d) { return xScale(d.date)})
+            .attr('cy', function(d) { return yScale(d.value)})
+            .attr('r', 1)
+            .attr('fill', 'blue')
+            .attr('stroke', 'none')
+
+        // 定义鼠标移入事件
+        .on('mouseover', function (e, v) {
+            // 放大坐标圆点
+            d3.select(this).attr('r', 7)
+
+            // 在光标上方显示坐标值
+            var pos = d3.pointer(e)
+            svg.append('text')
+                .text(v.value + "万元")
+                .attr('class', 'tooltip')
+                .attr('x', pos[0]+50)
+                .attr('y', pos[1]+20)
+                .attr('text-anchor', 'end')
+        })
+
+        // 定义鼠标移出事件
+        .on('mouseout', function () {
+            // 还原坐标圆点
+            d3.select(this).attr('r', 0.5)
+            // 移除坐标值提示标签
+            d3.select('.tooltip').remove()
+        })
+    
+    })
+    </script>

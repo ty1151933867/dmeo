@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG Line Chart with Tooltip</title>
+  <style>
+    .tooltip {
+      display: none;
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 1px solid #ccc;
+      padding: 5px;
+      font-size: 12px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <svg width="600" height="400" style="border: 1px solid #ccc;">
+    <g transform="translate(50, 50)">
+      <!-- X轴 -->
+      <line x1="0" y1="300" x2="500" y2="300" stroke="black" />
+      <!-- Y轴 -->
+      <line x1="0" y1="0" x2="0" y2="300" stroke="black" />
+      <!-- 折线 -->
+      <polyline id="line" points="0,200 100,100 200,150 300,50 400,200" fill="none" stroke="blue" stroke-width="2" />
+    </g>
+  </svg>
+  <!-- 鼠标提示框 -->
+  <div id="tooltip" class="tooltip"></div>
+
+  <script>
+    const line = document.getElementById('line');
+    const tooltip = document.getElementById('tooltip');
+
+    line.addEventListener('mousemove', (event) => {
+      const point = getSVGCoordinates(event);
+      tooltip.style.display = 'block';
+      tooltip.style.left = `${event.pageX + 10}px`;
+      tooltip.style.top = `${event.pageY - 20}px`;
+      tooltip.textContent = `X: ${point.x.toFixed(2)}, Y: ${point.y.toFixed(2)}`;
+    });
+
+    line.addEventListener('mouseout', () => {
+      tooltip.style.display = 'none';
+    });
+
+    function getSVGCoordinates(event) {
+      const svg = document.querySelector('svg');
+      const pt = svg.createSVGPoint();
+      pt.x = event.clientX;
+      pt.y = event.clientY;
+      return pt.matrixTransform(svg.getScreenCTM().inverse());
+    }
+  </script>
+</body>
+</html>
