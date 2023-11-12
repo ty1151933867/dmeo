@@ -62,7 +62,7 @@
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
 <!-- Create a div where the graph will take place -->
-<div id="my_dataviz"></div>
+<div id="my_dataviz" style="width:680px; height:540px;"></div>
 
 <!-- 鼠标提示框 -->
 <div id="tooltip" class="charts-comment">
@@ -76,15 +76,18 @@
 </div>
 <script>
     // set the dimensions and margins of the graph
-    const margin = {top: 10, right: 30, bottom: 30, left: 60},
+    const margin = {top: 30, right: 30, bottom: 30, left: 60},
         width = 460 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
+        height = 480 - margin.top - margin.bottom;
     
     // append the svg object to the body of the page
     const svg = d3.select("#my_dataviz")
       .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
+        .attr("version", 1.2)
+        .attr("xmlns", "http://www.w3.org/2000/svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
       .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
     
@@ -107,18 +110,23 @@
             const padding = 0
             // Add X axis --> it is a date format
             const xScale = d3.scaleTime()
-              .domain(d3.extent(data, function(d) { return d.date; }))
+              //用domain将range平均分割
+              //d3.extent同时获取最大值和最小值
+              .domain(d3.extent(data, function(d) { return (d3.timeParse("%Y-%m-%d")(d.date)); }))
               .range([ 0, width ]);
+            
+            const xAxis = d3.axisBottom(xScale).tickValues(d3.timeParse("%Y-%m-%d")(data[0].date));
             svg.append("g")
               .attr("transform", `translate(0, ${height})`)
-              .call(d3.axisBottom(xScale));
+              .call(xAxis);
         
             // Add Y axis
             const yScale = d3.scaleLinear()
               .domain([0, d3.max(data, function(d) { return +d.value; })])
               .range([ height, 0 ]);
+            const yAxis = d3.axisLeft(yScale);
             svg.append("g")
-              .call(d3.axisLeft(yScale));
+              .call(yAxis);
         
             // 绘制折线
             var line = svg.append('g')
@@ -129,7 +137,7 @@
               .attr("stroke", "steelblue")
               .attr("stroke-width", 1.5)
               .attr("d", d3.line()
-                .x(function(d) { return xScale(d.date) })
+                .x(function(d) { return xScale(d3.timeParse("%Y-%m-%d")(d.date)) })
                 .y(function(d) { return yScale(d.value) })
                 )
 
@@ -141,7 +149,7 @@
             // 绘制数据坐标圆点
             line.selectAll('circle').data(data).enter()
                 .append('circle')
-                .attr('cx', function(d) { return xScale(d.date)})
+                .attr('cx', function(d) { return xScale(d3.timeParse("%Y-%m-%d")(d.date))})
                 .attr('cy', function(d) { return yScale(d.value)})
                 .attr('r', 5)
                 .attr('fill', 'green')
@@ -152,7 +160,7 @@
                 .on('mouseover', function (e, v) {
                     // 放大坐标圆点
                     d3.select(this).attr('r', 10)
-                    d3.select(this).attr('fill-opacity', 0)
+                    d3.select(this).attr('fill-opacity', 1)
 
                     // 在光标上方显示坐标值
                     var pos = d3.pointer(e)
