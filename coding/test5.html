@@ -8,19 +8,15 @@
         .demo{ padding:50px; }
         .mb10{ margin-bottom: 10px;}
         hr{ margin:20px 0;}
-        .msg1{ position: relative; width:300px;background: #d0d0d0; border-radius: 10px; padding:20px; margin-top:50px; }
-        .msg1::before{ position: absolute; left:30px; top:-20px; content:''; width:0; height: 0; border:10px solid transparent; border-bottom-color:#d0d0d0; }
         .msg2{ position: relative; width:300px;background: #f2f2f2; border:1px solid #d0d0d0; border-radius: 10px; padding:20px; margin-top:50px; }
-        .msg2::before,.msg2::after{ position: absolute; content:''; width:0; height: 0; border:10px solid transparent;  }
-        .msg2::before{ left:30px; top:-20px; border-bottom-color:#d0d0d0; }
-        .msg2::after{ left:30px; top:-19px; border-bottom-color:#f2f2f2; }
+        .msg2::before,
+        .msg2::after{ position: absolute; content:''; width:0; height: 0; border:10px solid transparent;  }
+        .msg2::before{ left:30px; top:60px; border-top-color:#d0d0d0; }
+        .msg2::after{ left:30px; top:60px; border-top-color:#f2f2f2; }
     </style>
 </head>
 <body>
     <div class="demo">
-        <div class="mb10">效果1</div>
-        <div class="msg1">Hello World!</div>
-        <hr>
         <div class="mb10">效果2</div>
         <div class="msg2">Hello China!</div>
     </div>
