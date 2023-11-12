@@ -75,7 +75,6 @@
     </div>
 </div>
 <script>
-
     // set the dimensions and margins of the graph
     const margin = {top: 10, right: 30, bottom: 30, left: 60},
         width = 460 - margin.left - margin.right,
@@ -90,101 +89,107 @@
         .attr("transform", `translate(${margin.left},${margin.top})`);
     
     //Read the data
-    d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
-    //d3.csv("./data/local_data.csv",
-      // When reading the csv, I must format variables:
-      function(d){
-        //console.log(d);
-        return { date : d3.timeParse("%Y-%m-%d")(d.date), value : d.value }
-      }).then(
-    
-      // Now I can use this dataset:
-      function(data) {
-        const padding = 0
-        // Add X axis --> it is a date format
-        const xScale = d3.scaleTime()
-          .domain(d3.extent(data, function(d) { return d.date; }))
-          .range([ 0, width ]);
-        svg.append("g")
-          .attr("transform", `translate(0, ${height})`)
-          .call(d3.axisBottom(xScale));
-    
-        // Add Y axis
-        const yScale = d3.scaleLinear()
-          .domain([0, d3.max(data, function(d) { return +d.value; })])
-          .range([ height, 0 ]);
-        svg.append("g")
-          .call(d3.axisLeft(yScale));
-    
-        // 绘制折线
-        var line = svg.append('g')
-          .attr('transform', 'translate(0, '+padding+')')
-        line.append("path")
-          .datum(data)
-          .attr("fill", "none")
-          .attr("stroke", "steelblue")
-          .attr("stroke-width", 1.5)
-          .attr("d", d3.line()
-            .x(function(d) { return xScale(d.date) })
-            .y(function(d) { return yScale(d.value) })
-            )
+    //d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
 
-        const tooltip = document.getElementById('tooltip');
-        const kane1 = document.getElementById('kane1');
-        const kane2 = document.getElementById('kane2');
-        const date1 = document.getElementById('date1');
+    const data_path = "https://raw.githubusercontent.com/josh202310/testPj/main/coding/data/local_data.csv";
+    //const data = d3.csvParse(fs.readFileSync(data_path));
 
-        // 绘制数据坐标圆点
-        line.selectAll('circle').data(data).enter()
-            .append('circle')
-            .attr('cx', function(d) { return xScale(d.date)})
-            .attr('cy', function(d) { return yScale(d.value)})
-            .attr('r', 5)
-            .attr('fill', 'green')
-            .attr('stroke', 'none')
-            .attr('fill-opacity', 0)
+    d3
+      .csv(data_path,
+          // When reading the csv, I must format variables:
+          function(d){
+            //console.log(d.date, d.value, d.genka);
+            return { date : d.date, value : d.value, genka : d.genka}
+          })
+      .then(
+          // Now I can use this dataset:
+          function(data) {
+            const padding = 0
+            // Add X axis --> it is a date format
+            const xScale = d3.scaleTime()
+              .domain(d3.extent(data, function(d) { return d.date; }))
+              .range([ 0, width ]);
+            svg.append("g")
+              .attr("transform", `translate(0, ${height})`)
+              .call(d3.axisBottom(xScale));
+        
+            // Add Y axis
+            const yScale = d3.scaleLinear()
+              .domain([0, d3.max(data, function(d) { return +d.value; })])
+              .range([ height, 0 ]);
+            svg.append("g")
+              .call(d3.axisLeft(yScale));
+        
+            // 绘制折线
+            var line = svg.append('g')
+              .attr('transform', 'translate(0, '+padding+')')
+            line.append("path")
+              .datum(data)
+              .attr("fill", "none")
+              .attr("stroke", "steelblue")
+              .attr("stroke-width", 1.5)
+              .attr("d", d3.line()
+                .x(function(d) { return xScale(d.date) })
+                .y(function(d) { return yScale(d.value) })
+                )
 
-        // 定义鼠标移入事件
-        .on('mouseover', function (e, v) {
-            // 放大坐标圆点
-            d3.select(this).attr('r', 10)
-            d3.select(this).attr('fill-opacity', 0)
+            const tooltip = document.getElementById('tooltip');
+            const kane1 = document.getElementById('kane1');
+            const kane2 = document.getElementById('kane2');
+            const date1 = document.getElementById('date1');
 
-            // 在光标上方显示坐标值
-            var pos = d3.pointer(e)
-            svg.append('text')
-                .text(v.value + "万元" )
-                .attr('class', 'tooltip')
-                .attr('x', pos[0]+80)
-                .attr('y', pos[1]-20)
-                .attr('style', "border: 1px solid")
-                .attr('text-anchor', 'end')
-            
-            // 显示tooltip
-            tooltip.style.display
-            const point = getSVGCoordinates(e);
-            tooltip.style.display = 'block';
-            tooltip.style.left = `${e.pageX}px`;
-            tooltip.style.top = `${e.pageY}px`;
-            //tooltip.textContent = 'X:'+ v.value + "万元" + `Y: ${point.y.toFixed(2)}`;
-            kane1.textContent = v.value + "万元";
-            kane2.textContent = v.value + "万元";
-            date1.textContent = v.date;
+            // 绘制数据坐标圆点
+            line.selectAll('circle').data(data).enter()
+                .append('circle')
+                .attr('cx', function(d) { return xScale(d.date)})
+                .attr('cy', function(d) { return yScale(d.value)})
+                .attr('r', 5)
+                .attr('fill', 'green')
+                .attr('stroke', 'none')
+                .attr('fill-opacity', 0)
 
-        })
+                // 定义鼠标移入事件
+                .on('mouseover', function (e, v) {
+                    // 放大坐标圆点
+                    d3.select(this).attr('r', 10)
+                    d3.select(this).attr('fill-opacity', 0)
 
-        // 定义鼠标移出事件
-        .on('mouseout', function () {
-            // 还原坐标圆点
-            d3.select(this).attr('r', 5)
-            d3.select(this).attr('fill-opacity', 0)
-            // 移除坐标值提示标签
-            d3.select('.tooltip').remove()
-            tooltip.style.display = 'none';
-        })
-    
-    })
+                    // 在光标上方显示坐标值
+                    var pos = d3.pointer(e)
+                    svg.append('text')
+                        .text(v.value + "万元" )
+                        .attr('class', 'tooltip')
+                        .attr('x', pos[0]+80)
+                        .attr('y', pos[1]-20)
+                        .attr('style', "border: 1px solid")
+                        .attr('text-anchor', 'end')
+                    
+                    // 显示tooltip
+                    tooltip.style.display
+                    const point = getSVGCoordinates(e);
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = `${e.pageX}px`;
+                    tooltip.style.top = `${e.pageY}px`;
+                    //tooltip.textContent = 'X:'+ v.value + "万元" + `Y: ${point.y.toFixed(2)}`;
+                    kane1.textContent = v.value + "万元";
+                    kane2.textContent = v.genka + "万元";
+                    date1.textContent = v.date;
 
+                })
+
+                // 定义鼠标移出事件
+                .on('mouseout', function () {
+                    // 还原坐标圆点
+                    d3.select(this).attr('r', 5)
+                    d3.select(this).attr('fill-opacity', 0)
+                    // 移除坐标值提示标签
+                    d3.select('.tooltip').remove()
+                    tooltip.style.display = 'none';
+                })
+          }
+      )
+  
+    //取得光标在svg中的坐标
     function getSVGCoordinates(event) {
       const svg = document.querySelector('svg');
       const pt = svg.createSVGPoint();
