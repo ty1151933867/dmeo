@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chart.js Pie Chart with Interactivity</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.3.2/chart.min.js"></script>
+  <style>
+    canvas {
+      max-width: 600px;
+      margin: 0 auto;
+      display: block;
+    }
+    .chart-legend li {
+      cursor: pointer;
+    }
+    .chart-legend li:hover {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="myChart"></canvas>
+  <div class="chart-legend"></div>
+  <script>
+    // 数据
+    var data = {
+      labels: ['米国株', '日欧株', '新興国株', '債券', '物価連動債', '金', '不動産', '現金', '現金負数'],
+      datasets: [{
+        data: [24.1, 10.5, 5.0, 48.5, 0, 6.9, 5.0, 0, 0],
+        backgroundColor: ['#24b7eb', '#58d5f3', '#7ae9fa', '#86b954', '#b2cb49', '#feca40', '#f99247', '#dddddd', '#f4f4f3'],
+//        hoverBackgroundColor: ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF', '#FFFFFF'],
+        initBackgroundColor: ['#24b7eb', '#58d5f3', '#7ae9fa', '#86b954', '#b2cb49', '#feca40', '#f99247', '#dddddd', '#f4f4f3'],
+        borderWidth: 0
+      }]
+    };
+
+    // 配置项
+    var options = {
+      cutout: '30%',
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          enabled: false
+        }
+      },
+      onHover: function(event) {
+//        var activeElements = myChart.getActiveElements(event);
+//        if (activeElements.length > 0) {
+//          var index = activeElements[0].index;
+//          var label = myChart.data.labels[index];
+//          console.log('Clicked on ' + label);
+//        }
+        hideByDoughnut(event);
+
+      },
+
+      onLeave: function(event) {
+        resetDoughnutAndLegend(event);
+      },
+
+      onClick: function(event) {
+        var activeElements = myChart.getActiveElements(event);
+        if (activeElements.length > 0) {
+          var index = activeElements[0].index;
+          var label = myChart.data.labels[index];
+          console.log('Clicked on ' + label);
+        }
+      }
+    };
+
+    // 创建图表
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: data,
+      options: options
+    });
+
+    // 创建图例
+    // 创建 <table> 元素
+    var legendItems = [];
+
+    var tableElement = document.createElement('table');
+
+    // 创建表头行
+    var headerRow = document.createElement('tr');
+ 
+    var headerCell1 = document.createElement('th');
+    headerCell1.textContent = ' 資産クラス ';
+    var headerCell2 = document.createElement('th');
+    headerCell2.textContent = ' 割合 ';
+    headerRow.appendChild(headerCell1);
+    headerRow.appendChild(headerCell2);
+    tableElement.appendChild(headerRow);
+    legendItems.push(tableElement); 
+
+    // 创建数据行
+    for (var i = 0; i < data.labels.length; i++) {
+      var item = document.createElement('tr');
+      // 给数据行绑定 mouseover 事件
+      item.addEventListener('mouseover', hideByDoughnut);
+      item.addEventListener('mouseout', resetDoughnutAndLegend);
+      item.addEventListener('click', hideByDoughnut);
+
+      var dataCell1 = document.createElement('td');
+      dataCell1.textContent = data.labels[i];
+      var dataCell2 = document.createElement('td');
+      dataCell2.textContent = data.datasets[0].data[i] + '%';
+      item.appendChild(dataCell1);
+      item.appendChild(dataCell2);
+      legendItems.push(item);     
+    }
+
+    var legend = document.querySelector('.chart-legend');
+    legendItems.forEach(function(item) {
+      legend.appendChild(item);
+    });
+    
+    // 将 <table> 元素添加到页面中的某个元素中
+    //document.getElementById('chart-legend').appendChild(tableElement);
+
+    var iIndex = 0;
+    // 隐藏
+    function hideByDoughnut(event) {
+      resetDoughnutAndLegend(event);
+      iIndex = doughnutOrLabel(event);
+      hideChartElement(iIndex);
+      hideLegendItem(iIndex);
+    }
+
+    // 重新显示
+    function resetDoughnutAndLegend(event) {
+      resetLegendItems();
+      resetChartElements();
+    }
+
+    // 隐藏环形图元素
+    function hideChartElement(index) {
+
+      for (var i = 0; i < data.labels.length; i++) {
+        if (index != i) {
+          myChart.data.datasets[0].backgroundColor[i] = hexToRGBA(myChart.data.datasets[0].initBackgroundColor[i],0.1);
+        }
+      };
+      myChart.update();
+    }
+
+    // 隐藏图例项
+    function hideLegendItem(index) {
+
+      index = index + 1
+      legendItems.forEach(function(item, i) {
+        if (index != i && i != 0) {
+          item.style.fontWeight = 'normal';
+         // item.style.color =  'gray';
+          item.style.color = hexToRGBA('#cccccc',0.2);
+
+          if (i%2 == 0) {
+            item.style.backgroundColor = '#fbfbfb';
+          }
+        }
+      });
+    }
+
+    // 环形图事件或文字区域事件判断
+    function doughnutOrLabel(event) {
+      var item = event.currentTarget;
+      if  (item) {
+        for (var i = 0; i < data.labels.length; i++) {
+          if (item.textContent ==  myChart.data.labels[i] + myChart.data.datasets[0].data[i] + "%") {
+            index = i;
+            break;
+          }
+        };
+        eventType = "Lable_Event";
+      } else {
+        var activeElements = myChart.getActiveElements(event);
+
+        if (activeElements.length > 0) {
+          var index = activeElements[0].index;
+          var label = myChart.data.labels[index];
+          eventType = "Doghnut_Event";
+          console.log('Clicked on'+ label);
+        }
+      }
+      return index;
+    }
+
+    // 重置图例项
+    function resetLegendItems() {
+      legendItems.forEach(function(item, index) {
+        item.style.fontWeight = 'normal';
+        item.style.color = '';
+        item.style.backgroundColor = '';
+      });
+    }
+    
+    // 重置环形图元素
+    function resetChartElements() {
+      for (var i = 0; i < data.labels.length; i++) {
+        myChart.data.datasets[0].backgroundColor[i] = myChart.data.datasets[0].initBackgroundColor[i];
+      };
+      myChart.update();
+    }
+
+    // 颜色转换rgba + alpha
+    function hexToRGBA(hex, alpha) {
+      var r = parseInt(hex.slice(1, 3), 16);
+      var g = parseInt(hex.slice(3, 5), 16);
+      var b = parseInt(hex.slice(5, 7), 16);
+    
+      if (alpha) {
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+      } else {
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', 1)';
+      }
+    }
+
+</script>
+</body>
+</html>
